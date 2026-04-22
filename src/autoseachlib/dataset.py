@@ -43,7 +43,10 @@ class DatasetBuilder:
             with Image.open(local_image_path) as img:
                 # Convert to RGBA for transparent mask drawing
                 img_rgba = img.convert("RGBA")
-                draw = ImageDraw.Draw(img_rgba, "RGBA")
+                
+                # Create a separate transparent overlay image to properly composite the alpha fill
+                overlay = Image.new("RGBA", img_rgba.size, (255, 255, 255, 0))
+                draw = ImageDraw.Draw(overlay)
                 
                 for _, row in group.iterrows():
                     cat_label = row.get('sub_type') if pd.notna(row.get('sub_type')) else row.get('name.1', 'unknown')
@@ -66,13 +69,15 @@ class DatasetBuilder:
                             for poly in polygons:
                                 if len(poly) >= 6:
                                     pts = [(poly[i], poly[i+1]) for i in range(0, len(poly), 2)]
-                                    draw.polygon(pts, outline=(0, 255, 0, 255), fill=(0, 255, 0, 64))
+                                    draw.polygon(pts, outline=(0, 255, 0, 255), fill=(0, 255, 0, 80))
                                     draw.text((pts[0][0], max(pts[0][1]-15, 0)), str(cat_label), fill=(0, 255, 0, 255))
                         except Exception:
                             pass
                 
+                # Blend the transparent overlay onto the original image
+                combined = Image.alpha_composite(img_rgba, overlay)
                 review_path = os.path.join(self.review_dir, image_name)
-                img_rgba.convert("RGB").save(review_path)
+                combined.convert("RGB").save(review_path)
         except Exception as e:
             print(f"Error drawing review for {image_name}: {e}")
 

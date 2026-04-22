@@ -9,14 +9,16 @@ def test_dataset_builder_init(tmp_path):
     assert builder.draw_review == "both"
     assert os.path.exists(os.path.join(tmp_path, "review_images"))
 
+@patch("autoseachlib.dataset.Image.alpha_composite")
 @patch("autoseachlib.dataset.download_image")
 @patch("autoseachlib.dataset.Image.open")
-def test_process_csv_with_review(mock_image_open, mock_download, tmp_path):
+def test_process_csv_with_review(mock_image_open, mock_download, mock_alpha_composite, tmp_path):
     # Mock image size to return 100x100
     mock_img = MagicMock()
     mock_img.size = (100, 100)
     mock_img.convert.return_value = mock_img
     mock_image_open.return_value.__enter__.return_value = mock_img
+    mock_alpha_composite.return_value = mock_img
     
     mock_download.return_value = True
 
