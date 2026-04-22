@@ -49,6 +49,18 @@ def build_parser() -> argparse.ArgumentParser:
     add_parser.add_argument("a", type=str, help="First string")
     add_parser.add_argument("b", type=str, help="Second string")
 
+    # --- download command ---
+    download_parser = subparsers.add_parser(
+        "download",
+        help="Download a file from S3",
+    )
+    download_parser.add_argument("bucket", help="S3 bucket name")
+    download_parser.add_argument("key", help="S3 key (path)")
+    download_parser.add_argument("local_path", help="Local destination path")
+    download_parser.add_argument("--access-key", help="AWS access key")
+    download_parser.add_argument("--secret-key", help="AWS secret key")
+    download_parser.add_argument("--region", help="AWS region")
+
     return parser
 
 
@@ -76,6 +88,17 @@ def main(argv: list[str] | None = None) -> int:
         result = add_strings(args.a, args.b)
         print(result)
         return 0
+
+    if args.command == "download":
+        success = download_image(
+            bucket=args.bucket,
+            key=args.key,
+            local_path=args.local_path,
+            access_key=args.access_key,
+            secret_key=args.secret_key,
+            region_name=args.region
+        )
+        return 0 if success else 1
 
     return 1
 

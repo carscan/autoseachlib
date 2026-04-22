@@ -24,7 +24,9 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-dependencies = []
+dependencies = [
+    "boto3>=1.26.0",
+]
 
 [project.scripts]
 autoseachlib = "autoseachlib.cli:main"
@@ -34,6 +36,7 @@ dev = [
     "pytest>=7.0",
     "pytest-cov>=4.0",
     "ipykernel>=6.0",
+    "moto[s3]",
 ]
 
 [project.urls]

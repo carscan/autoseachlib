@@ -10,7 +10,7 @@ class TestCli:
         exit_code = main(["hello"])
         captured = capsys.readouterr()
         assert exit_code == 0
-        assert "Hello World from AutoSeachLib!" in captured.out
+        assert "Hello World from AutoSeachLib chander!" in captured.out
 
     def test_add_command(self, capsys):
         exit_code = main(["add", "Hello, ", "World!"])

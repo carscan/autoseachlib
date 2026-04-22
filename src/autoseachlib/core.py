@@ -14,7 +14,7 @@ def hello_world() -> str:
         Hello World from AutoSeachLib!
         'Hello World from AutoSeachLib!'
     """
-    message = "Hello World from AutoSeachLib!"
+    message = "Hello World from AutoSeachLib chander!"
     print(message)
     return message
 

@@ -9,12 +9,12 @@ class TestHelloWorld:
 
     def test_returns_greeting(self):
         result = hello_world()
-        assert result == "Hello World from AutoSeachLib!"
+        assert result == "Hello World from AutoSeachLib chander!"
 
     def test_prints_greeting(self, capsys):
         hello_world()
         captured = capsys.readouterr()
-        assert captured.out.strip() == "Hello World from AutoSeachLib!"
+        assert captured.out.strip() == "Hello World from AutoSeachLib chander!"
 
 
 class TestAddStrings:
