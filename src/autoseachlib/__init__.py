@@ -16,6 +16,7 @@ Usage:
 
 from autoseachlib.core import hello_world, add_strings
 from autoseachlib.s3 import download_image
+from autoseachlib.dataset import DatasetBuilder
 
 __version__ = "0.1.0"
 
@@ -23,5 +24,6 @@ __all__ = [
     "hello_world",
     "add_strings",
     "download_image",
+    "DatasetBuilder",
     "__version__",
 ]
