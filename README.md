@@ -52,6 +52,24 @@ print(result)
 # → Hello, World!
 ```
 
+## CLI Usage
+
+After installation, the `autoseachlib` command is available in your terminal:
+
+```bash
+# Show version
+autoseachlib --version
+
+# Print hello world
+autoseachlib hello
+
+# Concatenate two strings
+autoseachlib add "Hello, " "World!"
+
+# Show help
+autoseachlib --help
+```
+
 ## Project Structure
 
 ```
@@ -63,9 +81,11 @@ autoseachlib/
 ├── src/
 │   └── autoseachlib/          # Package source code
 │       ├── __init__.py        # Public API exports
-│       └── core.py            # Core functions
+│       ├── core.py            # Core functions
+│       └── cli.py             # CLI entry point
 ├── tests/
-│   └── test_core.py           # Unit tests (pytest)
+│   ├── test_core.py           # Unit tests (pytest)
+│   └── test_cli.py            # CLI tests
 └── notebooks/
     └── demo.ipynb             # Demo notebook
 ```
