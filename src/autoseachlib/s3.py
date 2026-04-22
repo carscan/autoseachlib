@@ -43,6 +43,8 @@ def get_s3_client(
     return boto3.client("s3", **session_kwargs)
 
 
+from tqdm import tqdm
+
 def download_image(
     bucket: str,
     key: str,
@@ -50,6 +52,7 @@ def download_image(
     access_key: Optional[str] = None,
     secret_key: Optional[str] = None,
     region_name: Optional[str] = None,
+    show_progress: bool = True,
 ) -> bool:
     """
     Download an image (or any file) from S3.
@@ -61,6 +64,7 @@ def download_image(
         access_key: Optional AWS access key (overrides environment).
         secret_key: Optional AWS secret key (overrides environment).
         region_name: Optional AWS region (overrides environment).
+        show_progress: Whether to show a download progress bar.
         
     Returns:
         bool: True if successful, False otherwise.
@@ -71,13 +75,27 @@ def download_image(
     os.makedirs(os.path.dirname(os.path.abspath(local_path)), exist_ok=True)
     
     try:
-        print(f"Downloading s3://{bucket}/{key} to {local_path}...")
-        client.download_file(bucket, key, local_path)
-        print("Download successful.")
+        if show_progress:
+            try:
+                meta = client.head_object(Bucket=bucket, Key=key)
+                file_size = meta.get('ContentLength', 0)
+            except ClientError:
+                file_size = 0
+                
+            print(f"Downloading s3://{bucket}/{key} to {local_path}...")
+            filename = key.split('/')[-1]
+            with tqdm(total=file_size, unit='B', unit_scale=True, desc=filename) as pbar:
+                def progress_callback(bytes_amount):
+                    pbar.update(bytes_amount)
+                client.download_file(bucket, key, local_path, Callback=progress_callback)
+            print("Download successful.")
+        else:
+            client.download_file(bucket, key, local_path)
+            
         return True
     except ClientError as e:
-        print(f"Error downloading from S3: {e}")
+        if show_progress: print(f"Error downloading from S3: {e}")
         return False
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        if show_progress: print(f"An unexpected error occurred: {e}")
         return False

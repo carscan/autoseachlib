@@ -86,9 +86,9 @@ class DatasetBuilder:
             # Download image if it does not exist locally
             if not os.path.exists(local_image_path):
                 # Suppress the print statements from download_image to avoid flooding tqdm
-                success = download_image(bucket, s3_path, local_image_path)
+                success = download_image(bucket, s3_path, local_image_path, show_progress=False)
                 if not success:
-                    print(f"Failed to download {image_name} from S3.")
+                    print(f"\nFailed to download {image_name} from S3.")
                     continue
 
             # Get image dimensions required by COCO
