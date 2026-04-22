@@ -18,31 +18,37 @@ class DatasetBuilder:
     tasks (Object Detection, Segmentation via COCO format) and VLM tasks.
     """
 
-    def __init__(self, output_dir: str):
+    def __init__(self, output_dir: str, csv_path: str = None):
         """
         Initialize the DatasetBuilder.
 
         Args:
             output_dir (str): The root directory where the datapack will be created.
+            csv_path (str, optional): Path to the dataset CSV file.
         """
         self.output_dir = output_dir
+        self.csv_path = csv_path
         self.images_dir = os.path.join(output_dir, "images")
         self.annotations_dir = os.path.join(output_dir, "annotations")
         os.makedirs(self.images_dir, exist_ok=True)
         os.makedirs(self.annotations_dir, exist_ok=True)
 
-    def process_csv(self, csv_path: str):
+    def process_csv(self, csv_path: str = None):
         """
         Process the CSV file, download images, and generate annotation formats.
 
         Args:
-            csv_path (str): Path to the dataset CSV file.
+            csv_path (str, optional): Path to the dataset CSV file. Defaults to the one provided in __init__.
             
         Returns:
             tuple: Paths to the generated COCO JSON and VLM JSONL files.
         """
-        print(f"Reading CSV from {csv_path}...")
-        df = pd.read_csv(csv_path)
+        target_csv_path = csv_path or self.csv_path
+        if not target_csv_path:
+            raise ValueError("A csv_path must be provided either in DatasetBuilder initialization or process_csv().")
+
+        print(f"Reading CSV from {target_csv_path}...")
+        df = pd.read_csv(target_csv_path)
 
         coco_format = {
             "images": [],
