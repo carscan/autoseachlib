@@ -17,16 +17,33 @@ AutoSeachLib is designed to transition model optimization from manual analysis t
 
 ## Installation
 
-### From GitHub (recommended)
+### Using pip
 
 ```bash
 pip install git+https://github.com/carscan/autoseachlib.git
 ```
 
+### Using uv
+
+```bash
+# Install into the current environment
+uv pip install git+https://github.com/carscan/autoseachlib.git
+
+# Or add as a dependency to your project
+uv add git+https://github.com/carscan/autoseachlib.git
+
+# Or run the CLI directly without installing (ephemeral)
+uvx --from git+https://github.com/carscan/autoseachlib.git autoseachlib hello
+```
+
 ### In a Jupyter Notebook
 
 ```python
+# pip
 !pip install --upgrade git+https://github.com/carscan/autoseachlib.git
+
+# uv (faster)
+!uv pip install --upgrade git+https://github.com/carscan/autoseachlib.git
 ```
 
 ### For Development
@@ -34,7 +51,12 @@ pip install git+https://github.com/carscan/autoseachlib.git
 ```bash
 git clone https://github.com/carscan/autoseachlib.git
 cd autoseachlib
+
+# Using pip
 pip install -e ".[dev]"
+
+# Using uv
+uv pip install -e ".[dev]"
 ```
 
 ## Quick Start
