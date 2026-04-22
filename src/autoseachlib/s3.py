@@ -6,6 +6,10 @@ import os
 from typing import Optional
 import boto3
 from botocore.exceptions import ClientError
+from dotenv import load_dotenv
+
+# Load environment variables from .env file if it exists
+load_dotenv()
 
 
 def get_s3_client(
@@ -16,16 +20,25 @@ def get_s3_client(
     """
     Create a boto3 S3 client.
     
-    If access_key and secret_key are provided, they will be used.
-    Otherwise, the client will use the default session (IAM roles, environment variables, or ~/.aws/credentials).
+    Order of precedence for credentials:
+    1. Explicitly passed arguments (access_key, secret_key).
+    2. Environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY).
+    3. IAM Role / Default AWS credential chain.
     """
     session_kwargs = {}
-    if access_key and secret_key:
-        session_kwargs["aws_access_key_id"] = access_key
-        session_kwargs["aws_secret_access_key"] = secret_key
     
-    if region_name:
-        session_kwargs["region_name"] = region_name
+    # Use provided keys or fall back to environment variables explicitly
+    # (Boto3 does this automatically, but we can be explicit here)
+    aws_access_key = access_key or os.getenv("AWS_ACCESS_KEY_ID")
+    aws_secret_key = secret_key or os.getenv("AWS_SECRET_ACCESS_KEY")
+    aws_region = region_name or os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION")
+
+    if aws_access_key and aws_secret_key:
+        session_kwargs["aws_access_key_id"] = aws_access_key
+        session_kwargs["aws_secret_access_key"] = aws_secret_key
+    
+    if aws_region:
+        session_kwargs["region_name"] = aws_region
         
     return boto3.client("s3", **session_kwargs)
 
@@ -45,9 +58,9 @@ def download_image(
         bucket: The name of the S3 bucket.
         key: The key (path) of the file in S3.
         local_path: The local path where the file should be saved.
-        access_key: Optional AWS access key.
-        secret_key: Optional AWS secret key.
-        region_name: Optional AWS region.
+        access_key: Optional AWS access key (overrides environment).
+        secret_key: Optional AWS secret key (overrides environment).
+        region_name: Optional AWS region (overrides environment).
         
     Returns:
         bool: True if successful, False otherwise.
