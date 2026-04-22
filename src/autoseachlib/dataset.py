@@ -6,7 +6,7 @@ import os
 import json
 import ast
 import pandas as pd
-from PIL import Image
+from PIL import Image, ImageDraw
 from tqdm import tqdm
 from autoseachlib.s3 import download_image
 
@@ -18,20 +18,63 @@ class DatasetBuilder:
     tasks (Object Detection, Segmentation via COCO format) and VLM tasks.
     """
 
-    def __init__(self, output_dir: str, csv_path: str = None):
+    def __init__(self, output_dir: str, csv_path: str = None, draw_review: str = None):
         """
         Initialize the DatasetBuilder.
 
         Args:
             output_dir (str): The root directory where the datapack will be created.
             csv_path (str, optional): Path to the dataset CSV file.
+            draw_review (str, optional): 'box', 'mask', or 'both' to draw annotations on images and save them for review.
         """
         self.output_dir = output_dir
         self.csv_path = csv_path
+        self.draw_review = draw_review
         self.images_dir = os.path.join(output_dir, "images")
         self.annotations_dir = os.path.join(output_dir, "annotations")
         os.makedirs(self.images_dir, exist_ok=True)
         os.makedirs(self.annotations_dir, exist_ok=True)
+        if self.draw_review:
+            self.review_dir = os.path.join(output_dir, "review_images")
+            os.makedirs(self.review_dir, exist_ok=True)
+
+    def _draw_review_image(self, local_image_path: str, group: pd.DataFrame, image_name: str):
+        try:
+            with Image.open(local_image_path) as img:
+                # Convert to RGBA for transparent mask drawing
+                img_rgba = img.convert("RGBA")
+                draw = ImageDraw.Draw(img_rgba, "RGBA")
+                
+                for _, row in group.iterrows():
+                    cat_label = row.get('sub_type') if pd.notna(row.get('sub_type')) else row.get('name.1', 'unknown')
+                    bbox_str = row.get('bounding_box')
+                    polygon_str = row.get('polygon')
+
+                    if self.draw_review in ['box', 'both'] and pd.notna(bbox_str):
+                        try:
+                            bbox = ast.literal_eval(bbox_str)
+                            if len(bbox) == 4:
+                                x1, y1, x2, y2 = bbox
+                                draw.rectangle([x1, y1, x2, y2], outline=(255, 0, 0, 255), width=3)
+                                draw.text((x1, max(y1-15, 0)), str(cat_label), fill=(255, 0, 0, 255))
+                        except Exception:
+                            pass
+                    
+                    if self.draw_review in ['mask', 'both'] and pd.notna(polygon_str):
+                        try:
+                            polygons = ast.literal_eval(polygon_str)
+                            for poly in polygons:
+                                if len(poly) >= 6:
+                                    pts = [(poly[i], poly[i+1]) for i in range(0, len(poly), 2)]
+                                    draw.polygon(pts, outline=(0, 255, 0, 255), fill=(0, 255, 0, 64))
+                                    draw.text((pts[0][0], max(pts[0][1]-15, 0)), str(cat_label), fill=(0, 255, 0, 255))
+                        except Exception:
+                            pass
+                
+                review_path = os.path.join(self.review_dir, image_name)
+                img_rgba.convert("RGB").save(review_path)
+        except Exception as e:
+            print(f"Error drawing review for {image_name}: {e}")
 
     def process_csv(self, csv_path: str = None):
         """
@@ -49,6 +92,7 @@ class DatasetBuilder:
 
         print(f"Reading CSV from {target_csv_path}...")
         df = pd.read_csv(target_csv_path)
+        print(f"CSV shape: {df.shape}")
 
         coco_format = {
             "images": [],
@@ -175,6 +219,9 @@ class DatasetBuilder:
                     "image": f"images/{image_name}",
                     "text": " ".join(descriptions)
                 })
+
+            if self.draw_review:
+                self._draw_review_image(local_image_path, group, image_name)
 
             image_id_counter += 1
 
